@@ -70,4 +70,4 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools-check_rdna3_isa.
 5. `addQueue()`, `enqueue()` 후 command buffer 안에서 `recordBatch()`를 부른다.
 6. 일반 Vulkan semaphore/fence/timeline semaphore로 제출 완료를 추적한다.
 
-세부 필드와 descriptor binding은 [docs-api-and-layouts.md](docs-api-and-layouts.md), 표준 문서와의 대응은 [docs-standards-mapping.md](docs-standards-mapping.md)를 참고한다.
+세부 필드와 descriptor binding은 [RDNA3-Unified-MicroEngine-Codex-2026-08-12-docs-api-and-layouts.md](RDNA3-Unified-MicroEngine-Codex-2026-08-12-docs-api-and-layouts.md), 표준 문서와의 대응은 [RDNA3-Unified-MicroEngine-Codex-2026-08-12-docs-standards-mapping.md](RDNA3-Unified-MicroEngine-Codex-2026-08-12-docs-standards-mapping.md)를 참고한다.
