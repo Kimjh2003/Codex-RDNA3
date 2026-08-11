@@ -1,0 +1,292 @@
+; SPIR-V
+; Version: 1.6
+; Generator: Khronos Slang Compiler; 0
+; Bound: 221
+; Schema: 0
+OpCapability GroupNonUniform
+OpCapability Shader
+OpExtension "SPV_KHR_storage_buffer_storage_class"
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %main "main" %SubgroupLocalInvocationId %SubgroupId %SubgroupSize %dispatchInfo %sharedLane64 %inputLane64 %sharedWordPlane32 %distributedWord32 %outputLane64 %gl_WorkGroupID
+OpExecutionMode %main LocalSize 64 1 1
+
+; Debug Information
+OpSource Slang 1
+OpName %selectedWord "selectedWord"                 ; id %13
+OpName %selectedWord "selectedWord"                 ; id %13
+OpName %tileIndex "tileIndex"                       ; id %44
+OpName %DispatchInfo_std430 "DispatchInfo_std430"   ; id %45
+OpMemberName %DispatchInfo_std430 0 "tileCount"
+OpMemberName %DispatchInfo_std430 1 "laneCount64"
+OpMemberName %DispatchInfo_std430 2 "inputStride64"
+OpMemberName %DispatchInfo_std430 3 "outputStride64"
+OpName %dispatchInfo "dispatchInfo"                 ; id %47
+OpName %laneCount "laneCount"                       ; id %52
+OpName %physicalSlot "physicalSlot"                 ; id %104
+OpName %inputIndex "inputIndex"                     ; id %110
+OpName %sharedLane64 "sharedLane64"                 ; id %114
+OpName %StructuredBuffer "StructuredBuffer"         ; id %121
+OpMemberName %StructuredBuffer 0 "__member0"
+OpName %inputLane64 "inputLane64"                   ; id %124
+OpName %logicalLane "logicalLane"                   ; id %137
+OpName %wordPlane "wordPlane"                       ; id %139
+OpName %rawLane "rawLane"                           ; id %142
+OpName %transformedLane "transformedLane"           ; id %157
+OpName %sharedWordPlane32 "sharedWordPlane32"       ; id %169
+OpName %RWStructuredBuffer "RWStructuredBuffer"     ; id %184
+OpMemberName %RWStructuredBuffer 0 "__member0"
+OpName %distributedWord32 "distributedWord32"       ; id %187
+OpName %outputIndex "outputIndex"                   ; id %195
+OpName %RWStructuredBuffer_0 "RWStructuredBuffer"   ; id %197
+OpMemberName %RWStructuredBuffer_0 0 "__member0"
+OpName %outputLane64 "outputLane64"                 ; id %199
+OpName %main "main"                                 ; id %2
+
+; Annotations
+OpDecorate %gl_WorkGroupID BuiltIn WorkgroupId
+OpDecorate %DispatchInfo_std430 Block
+OpMemberDecorate %DispatchInfo_std430 0 Offset 0
+OpMemberDecorate %DispatchInfo_std430 1 Offset 4
+OpMemberDecorate %DispatchInfo_std430 2 Offset 8
+OpMemberDecorate %DispatchInfo_std430 3 Offset 12
+OpDecorate %SubgroupSize BuiltIn SubgroupSize
+OpDecorate %SubgroupId BuiltIn SubgroupId
+OpDecorate %SubgroupLocalInvocationId BuiltIn SubgroupLocalInvocationId
+OpDecorate %_ptr_StorageBuffer_v2uint ArrayStride 8
+OpDecorate %_runtimearr_v2uint ArrayStride 8
+OpDecorate %StructuredBuffer Block
+OpMemberDecorate %StructuredBuffer 0 Offset 0
+OpDecorate %inputLane64 Binding 0
+OpDecorate %inputLane64 DescriptorSet 0
+OpDecorate %inputLane64 NonWritable
+OpDecorate %_ptr_StorageBuffer_uint ArrayStride 4
+OpDecorate %_runtimearr_uint ArrayStride 4
+OpDecorate %RWStructuredBuffer Block
+OpMemberDecorate %RWStructuredBuffer 0 Offset 0
+OpDecorate %distributedWord32 Binding 1
+OpDecorate %distributedWord32 DescriptorSet 0
+OpDecorate %RWStructuredBuffer_0 Block
+OpMemberDecorate %RWStructuredBuffer_0 0 Offset 0
+OpDecorate %outputLane64 Binding 2
+OpDecorate %outputLane64 DescriptorSet 0
+
+; Types, variables and constants
+%void = OpTypeVoid
+%3 = OpTypeFunction %void
+%bool = OpTypeBool
+%_ptr_Function_bool = OpTypePointer Function %bool
+%uint = OpTypeInt 32 0
+%v2uint = OpTypeVector %uint 2
+%_ptr_Function_v2uint = OpTypePointer Function %v2uint
+%_ptr_Function_uint = OpTypePointer Function %uint
+%v3uint = OpTypeVector %uint 3
+%_ptr_Input_v3uint = OpTypePointer Input %v3uint
+%DispatchInfo_std430 = OpTypeStruct %uint %uint %uint %uint     ; Block
+%_ptr_PushConstant_DispatchInfo_std430 = OpTypePointer PushConstant %DispatchInfo_std430
+%int = OpTypeInt 32 1
+%int_1 = OpConstant %int 1
+%_ptr_PushConstant_uint = OpTypePointer PushConstant %uint
+%int_0 = OpConstant %int 0
+%true = OpConstantTrue %bool
+%uint_2 = OpConstant %uint 2
+%uint_32 = OpConstant %uint 32
+%int_2 = OpConstant %int 2
+%int_3 = OpConstant %int 3
+%_ptr_Input_uint = OpTypePointer Input %uint
+%int_32 = OpConstant %int 32
+%_arr_v2uint_int_32 = OpTypeArray %v2uint %int_32
+%_ptr_Workgroup__arr_v2uint_int_32 = OpTypePointer Workgroup %_arr_v2uint_int_32
+%_ptr_Workgroup_v2uint = OpTypePointer Workgroup %v2uint
+%_ptr_StorageBuffer_v2uint = OpTypePointer StorageBuffer %v2uint    ; ArrayStride 8
+%_runtimearr_v2uint = OpTypeRuntimeArray %v2uint                    ; ArrayStride 8
+%StructuredBuffer = OpTypeStruct %_runtimearr_v2uint                ; Block
+%_ptr_StorageBuffer_StructuredBuffer = OpTypePointer StorageBuffer %StructuredBuffer
+%uint_0 = OpConstant %uint 0
+%128 = OpConstantComposite %v2uint %uint_0 %uint_0
+%uint_264 = OpConstant %uint 264
+%uint_31 = OpConstant %uint 31
+%int_5 = OpConstant %int 5
+%int_31 = OpConstant %int 31
+%int_64 = OpConstant %int 64
+%_arr_uint_int_64 = OpTypeArray %uint %int_64
+%_ptr_Workgroup__arr_uint_int_64 = OpTypePointer Workgroup %_arr_uint_int_64
+%_ptr_Workgroup_uint = OpTypePointer Workgroup %uint
+%uint_64 = OpConstant %uint 64
+%_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint    ; ArrayStride 4
+%_runtimearr_uint = OpTypeRuntimeArray %uint                    ; ArrayStride 4
+%RWStructuredBuffer = OpTypeStruct %_runtimearr_uint            ; Block
+%_ptr_StorageBuffer_RWStructuredBuffer = OpTypePointer StorageBuffer %RWStructuredBuffer
+%RWStructuredBuffer_0 = OpTypeStruct %_runtimearr_v2uint    ; Block
+%_ptr_StorageBuffer_RWStructuredBuffer_0 = OpTypePointer StorageBuffer %RWStructuredBuffer_0
+%gl_WorkGroupID = OpVariable %_ptr_Input_v3uint Input   ; BuiltIn WorkgroupId
+%dispatchInfo = OpVariable %_ptr_PushConstant_DispatchInfo_std430 PushConstant
+%SubgroupSize = OpVariable %_ptr_Input_uint Input   ; BuiltIn SubgroupSize
+%SubgroupId = OpVariable %_ptr_Input_uint Input     ; BuiltIn SubgroupId
+%SubgroupLocalInvocationId = OpVariable %_ptr_Input_uint Input  ; BuiltIn SubgroupLocalInvocationId
+%sharedLane64 = OpVariable %_ptr_Workgroup__arr_v2uint_int_32 Workgroup
+%inputLane64 = OpVariable %_ptr_StorageBuffer_StructuredBuffer StorageBuffer    ; Binding 0, DescriptorSet 0, NonWritable
+%sharedWordPlane32 = OpVariable %_ptr_Workgroup__arr_uint_int_64 Workgroup
+%distributedWord32 = OpVariable %_ptr_StorageBuffer_RWStructuredBuffer StorageBuffer    ; Binding 1, DescriptorSet 0
+%outputLane64 = OpVariable %_ptr_StorageBuffer_RWStructuredBuffer_0 StorageBuffer       ; Binding 2, DescriptorSet 0
+
+; Function main
+%main = OpFunction %void None %3
+%4 = OpLabel
+%7 = OpVariable %_ptr_Function_bool Function
+%11 = OpVariable %_ptr_Function_v2uint Function
+%selectedWord = OpVariable %_ptr_Function_uint Function
+OpSelectionMerge %208 None
+OpSwitch %uint_0 %209
+%209 = OpLabel
+%41 = OpLoad %v3uint %gl_WorkGroupID
+%tileIndex = OpCompositeExtract %uint %41 0
+%51 = OpAccessChain %_ptr_PushConstant_uint %dispatchInfo %int_1
+%laneCount = OpLoad %uint %51
+%54 = OpAccessChain %_ptr_PushConstant_uint %dispatchInfo %int_0
+%55 = OpLoad %uint %54
+%56 = OpUGreaterThanEqual %bool %tileIndex %55
+OpSelectionMerge %16 None
+OpBranchConditional %56 %14 %15
+%14 = OpLabel
+OpStore %7 %true
+OpBranch %16
+%15 = OpLabel
+%61 = OpULessThan %bool %laneCount %uint_2
+OpStore %7 %61
+OpBranch %16
+%16 = OpLabel
+%65 = OpLoad %bool %7
+OpSelectionMerge %19 None
+OpBranchConditional %65 %17 %18
+%17 = OpLabel
+OpStore %7 %true
+OpBranch %19
+%18 = OpLabel
+%69 = OpUGreaterThan %bool %laneCount %uint_32
+OpStore %7 %69
+OpBranch %19
+%19 = OpLabel
+%73 = OpLoad %bool %7
+OpSelectionMerge %22 None
+OpBranchConditional %73 %20 %21
+%20 = OpLabel
+OpStore %7 %true
+OpBranch %22
+%21 = OpLabel
+%78 = OpAccessChain %_ptr_PushConstant_uint %dispatchInfo %int_2
+%79 = OpLoad %uint %78
+%80 = OpULessThan %bool %79 %laneCount
+OpStore %7 %80
+OpBranch %22
+%22 = OpLabel
+%83 = OpLoad %bool %7
+OpSelectionMerge %25 None
+OpBranchConditional %83 %23 %24
+%23 = OpLabel
+OpStore %7 %true
+OpBranch %25
+%24 = OpLabel
+%88 = OpAccessChain %_ptr_PushConstant_uint %dispatchInfo %int_3
+%89 = OpLoad %uint %88
+%90 = OpULessThan %bool %89 %laneCount
+OpStore %7 %90
+OpBranch %25
+%25 = OpLabel
+%93 = OpLoad %bool %7
+OpSelectionMerge %27 None
+OpBranchConditional %93 %26 %27
+%26 = OpLabel
+OpBranch %208
+%27 = OpLabel
+%96 = OpLoad %uint %SubgroupSize
+%99 = OpLoad %uint %SubgroupId
+%101 = OpLoad %uint %SubgroupLocalInvocationId
+%103 = OpIMul %uint %99 %96
+%physicalSlot = OpIAdd %uint %103 %101
+%105 = OpULessThan %bool %physicalSlot %uint_32
+OpSelectionMerge %32 None
+OpBranchConditional %105 %28 %32
+%28 = OpLabel
+%107 = OpAccessChain %_ptr_PushConstant_uint %dispatchInfo %int_2
+%108 = OpLoad %uint %107
+%109 = OpIMul %uint %tileIndex %108
+%inputIndex = OpIAdd %uint %109 %physicalSlot
+%116 = OpAccessChain %_ptr_Workgroup_v2uint %sharedLane64 %physicalSlot
+%117 = OpULessThan %bool %physicalSlot %laneCount
+OpSelectionMerge %31 None
+OpBranchConditional %117 %29 %30
+%29 = OpLabel
+%120 = OpAccessChain %_ptr_StorageBuffer_v2uint %inputLane64 %int_0 %inputIndex
+%125 = OpLoad %v2uint %120
+OpStore %11 %125
+OpBranch %31
+%30 = OpLabel
+OpStore %11 %128
+OpBranch %31
+%31 = OpLabel
+%132 = OpLoad %v2uint %11
+OpStore %116 %132
+OpBranch %32
+%32 = OpLabel
+OpControlBarrier %uint_2 %uint_2 %uint_264
+%logicalLane = OpBitwiseAnd %uint %physicalSlot %uint_31
+%wordPlane = OpShiftRightLogical %uint %physicalSlot %int_5
+%141 = OpAccessChain %_ptr_Workgroup_v2uint %sharedLane64 %logicalLane
+%rawLane = OpLoad %v2uint %141
+%214 = OpCompositeExtract %uint %rawLane 0
+%215 = OpShiftLeftLogical %uint %214 %int_1
+%216 = OpCompositeExtract %uint %rawLane 1
+%217 = OpShiftLeftLogical %uint %216 %int_1
+%218 = OpShiftRightLogical %uint %214 %int_31
+%219 = OpBitwiseOr %uint %217 %218
+%220 = OpCompositeConstruct %v2uint %215 %219
+%transformedLane = OpBitwiseXor %v2uint %rawLane %220
+%158 = OpIEqual %bool %wordPlane %uint_0
+OpSelectionMerge %35 None
+OpBranchConditional %158 %33 %34
+%33 = OpLabel
+%160 = OpCompositeExtract %uint %transformedLane 0
+OpStore %selectedWord %160
+OpBranch %35
+%34 = OpLabel
+%163 = OpCompositeExtract %uint %transformedLane 1
+OpStore %selectedWord %163
+OpBranch %35
+%35 = OpLabel
+%171 = OpAccessChain %_ptr_Workgroup_uint %sharedWordPlane32 %physicalSlot
+%172 = OpULessThan %bool %logicalLane %laneCount
+OpSelectionMerge %37 None
+OpBranchConditional %172 %37 %36
+%36 = OpLabel
+OpStore %selectedWord %uint_0
+OpBranch %37
+%37 = OpLabel
+%176 = OpLoad %uint %selectedWord
+OpStore %171 %176
+OpControlBarrier %uint_2 %uint_2 %uint_264
+%179 = OpIMul %uint %tileIndex %uint_64
+%181 = OpIAdd %uint %179 %physicalSlot
+%183 = OpAccessChain %_ptr_StorageBuffer_uint %distributedWord32 %int_0 %181
+%188 = OpLoad %uint %171
+OpStore %183 %188
+%190 = OpULessThan %bool %physicalSlot %laneCount
+OpSelectionMerge %39 None
+OpBranchConditional %190 %38 %39
+%38 = OpLabel
+%192 = OpAccessChain %_ptr_PushConstant_uint %dispatchInfo %int_3
+%193 = OpLoad %uint %192
+%194 = OpIMul %uint %tileIndex %193
+%outputIndex = OpIAdd %uint %194 %physicalSlot
+%196 = OpAccessChain %_ptr_StorageBuffer_v2uint %outputLane64 %int_0 %outputIndex
+%200 = OpLoad %uint %171
+%201 = OpIAdd %uint %physicalSlot %uint_32
+%202 = OpAccessChain %_ptr_Workgroup_uint %sharedWordPlane32 %201
+%203 = OpLoad %uint %202
+%204 = OpCompositeConstruct %v2uint %200 %203
+OpStore %196 %204
+OpBranch %39
+%39 = OpLabel
+OpBranch %208
+%208 = OpLabel
+OpReturn
+OpFunctionEnd

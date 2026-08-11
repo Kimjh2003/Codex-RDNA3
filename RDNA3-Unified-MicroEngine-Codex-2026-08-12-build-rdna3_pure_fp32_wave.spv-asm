@@ -1,0 +1,137 @@
+; SPIR-V
+; Version: 1.6
+; Generator: Khronos Slang Compiler; 0
+; Bound: 73
+; Schema: 0
+OpCapability GroupNonUniformArithmetic
+OpCapability GroupNonUniform
+OpCapability Shader
+OpExtension "SPV_KHR_storage_buffer_storage_class"
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %main "main" %SubgroupSize %dispatchInfo %inputData %elementData %subgroupData %gl_GlobalInvocationID %gl_WorkGroupID %gl_LocalInvocationIndex
+OpExecutionMode %main LocalSize 64 1 1
+
+; Debug Information
+OpSource Slang 1
+OpName %transformed "transformed"                   ; id %7
+OpName %transformed "transformed"                   ; id %7
+OpName %index "index"                               ; id %18
+OpName %DispatchInfo_std430 "DispatchInfo_std430"   ; id %19
+OpMemberName %DispatchInfo_std430 0 "elementCount"
+OpName %dispatchInfo "dispatchInfo"                 ; id %21
+OpName %valid "valid"                               ; id %28
+OpName %StructuredBuffer "StructuredBuffer"         ; id %32
+OpMemberName %StructuredBuffer 0 "__member0"
+OpName %inputData "inputData"                       ; id %35
+OpName %squared "squared"                           ; id %37
+OpName %result "result"                             ; id %38
+OpName %RWStructuredBuffer "RWStructuredBuffer"     ; id %41
+OpMemberName %RWStructuredBuffer 0 "__member0"
+OpName %elementData "elementData"                   ; id %43
+OpName %subgroupsPerWorkgroup "subgroupsPerWorkgroup"   ; id %58
+OpName %subgroupID "subgroupID"                         ; id %62
+OpName %outputIndex "outputIndex"                       ; id %67
+OpName %subgroupData "subgroupData"                     ; id %69
+OpName %main "main"                                     ; id %2
+
+; Annotations
+OpDecorate %gl_GlobalInvocationID BuiltIn GlobalInvocationId
+OpDecorate %DispatchInfo_std430 Block
+OpMemberDecorate %DispatchInfo_std430 0 Offset 0
+OpDecorate %_ptr_StorageBuffer_float ArrayStride 4
+OpDecorate %_runtimearr_float ArrayStride 4
+OpDecorate %StructuredBuffer Block
+OpMemberDecorate %StructuredBuffer 0 Offset 0
+OpDecorate %inputData Binding 0
+OpDecorate %inputData DescriptorSet 0
+OpDecorate %inputData NonWritable
+OpDecorate %squared NoContraction
+OpDecorate %result NoContraction
+OpDecorate %RWStructuredBuffer Block
+OpMemberDecorate %RWStructuredBuffer 0 Offset 0
+OpDecorate %elementData Binding 1
+OpDecorate %elementData DescriptorSet 0
+OpDecorate %SubgroupSize BuiltIn SubgroupSize
+OpDecorate %gl_LocalInvocationIndex BuiltIn LocalInvocationIndex
+OpDecorate %gl_WorkGroupID BuiltIn WorkgroupId
+OpDecorate %subgroupData Binding 2
+OpDecorate %subgroupData DescriptorSet 0
+
+; Types, variables and constants
+%void = OpTypeVoid
+%3 = OpTypeFunction %void
+%float = OpTypeFloat 32
+%_ptr_Function_float = OpTypePointer Function %float
+%uint = OpTypeInt 32 0
+%v3uint = OpTypeVector %uint 3
+%_ptr_Input_v3uint = OpTypePointer Input %v3uint
+%DispatchInfo_std430 = OpTypeStruct %uint           ; Block
+%_ptr_PushConstant_DispatchInfo_std430 = OpTypePointer PushConstant %DispatchInfo_std430
+%int = OpTypeInt 32 1
+%int_0 = OpConstant %int 0
+%_ptr_PushConstant_uint = OpTypePointer PushConstant %uint
+%bool = OpTypeBool
+%_ptr_StorageBuffer_float = OpTypePointer StorageBuffer %float  ; ArrayStride 4
+%_runtimearr_float = OpTypeRuntimeArray %float                  ; ArrayStride 4
+%StructuredBuffer = OpTypeStruct %_runtimearr_float             ; Block
+%_ptr_StorageBuffer_StructuredBuffer = OpTypePointer StorageBuffer %StructuredBuffer
+%float_2 = OpConstant %float 2
+%RWStructuredBuffer = OpTypeStruct %_runtimearr_float   ; Block
+%_ptr_StorageBuffer_RWStructuredBuffer = OpTypePointer StorageBuffer %RWStructuredBuffer
+%float_0 = OpConstant %float 0
+%uint_3 = OpConstant %uint 3
+%_ptr_Input_uint = OpTypePointer Input %uint
+%uint_64 = OpConstant %uint 64
+%gl_GlobalInvocationID = OpVariable %_ptr_Input_v3uint Input    ; BuiltIn GlobalInvocationId
+%dispatchInfo = OpVariable %_ptr_PushConstant_DispatchInfo_std430 PushConstant
+%inputData = OpVariable %_ptr_StorageBuffer_StructuredBuffer StorageBuffer  ; Binding 0, DescriptorSet 0, NonWritable
+%elementData = OpVariable %_ptr_StorageBuffer_RWStructuredBuffer StorageBuffer  ; Binding 1, DescriptorSet 0
+%SubgroupSize = OpVariable %_ptr_Input_uint Input                               ; BuiltIn SubgroupSize
+%gl_LocalInvocationIndex = OpVariable %_ptr_Input_uint Input                    ; BuiltIn LocalInvocationIndex
+%gl_WorkGroupID = OpVariable %_ptr_Input_v3uint Input                           ; BuiltIn WorkgroupId
+%subgroupData = OpVariable %_ptr_StorageBuffer_RWStructuredBuffer StorageBuffer     ; Binding 2, DescriptorSet 0
+
+; Function main
+%main = OpFunction %void None %3
+%4 = OpLabel
+%transformed = OpVariable %_ptr_Function_float Function
+%15 = OpLoad %v3uint %gl_GlobalInvocationID
+%index = OpCompositeExtract %uint %15 0
+%25 = OpAccessChain %_ptr_PushConstant_uint %dispatchInfo %int_0
+%26 = OpLoad %uint %25
+%valid = OpULessThan %bool %index %26
+OpSelectionMerge %10 None
+OpBranchConditional %valid %8 %9
+%8 = OpLabel
+%31 = OpAccessChain %_ptr_StorageBuffer_float %inputData %int_0 %index
+%36 = OpLoad %float %31
+%squared = OpFMul %float %36 %36                    ; NoContraction
+%result = OpFAdd %float %squared %float_2           ; NoContraction
+%40 = OpAccessChain %_ptr_StorageBuffer_float %elementData %int_0 %index
+OpStore %40 %result
+OpStore %transformed %result
+OpBranch %10
+%9 = OpLabel
+OpStore %transformed %float_0
+OpBranch %10
+%10 = OpLabel
+%50 = OpLoad %float %transformed
+%51 = OpGroupNonUniformFAdd %float %uint_3 Reduce %50
+%53 = OpGroupNonUniformElect %bool %uint_3
+OpSelectionMerge %12 None
+OpBranchConditional %53 %11 %12
+%11 = OpLabel
+%55 = OpLoad %uint %SubgroupSize
+%subgroupsPerWorkgroup = OpUDiv %uint %uint_64 %55
+%60 = OpLoad %uint %gl_LocalInvocationIndex
+%subgroupID = OpUDiv %uint %60 %55
+%63 = OpLoad %v3uint %gl_WorkGroupID
+%65 = OpCompositeExtract %uint %63 0
+%66 = OpIMul %uint %65 %subgroupsPerWorkgroup
+%outputIndex = OpIAdd %uint %66 %subgroupID
+%68 = OpAccessChain %_ptr_StorageBuffer_float %subgroupData %int_0 %outputIndex
+OpStore %68 %51
+OpBranch %12
+%12 = OpLabel
+OpReturn
+OpFunctionEnd

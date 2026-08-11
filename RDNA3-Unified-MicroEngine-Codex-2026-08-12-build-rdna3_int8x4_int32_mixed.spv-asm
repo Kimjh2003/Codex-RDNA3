@@ -1,0 +1,117 @@
+; SPIR-V
+; Version: 1.6
+; Generator: Khronos Slang Compiler; 0
+; Bound: 53
+; Schema: 0
+OpCapability DotProduct
+OpCapability DotProductInput4x8BitPacked
+OpCapability Shader
+OpExtension "SPV_KHR_storage_buffer_storage_class"
+OpMemoryModel Logical GLSL450
+OpEntryPoint GLCompute %main "main" %dispatchInfo %lhsPackedInt8x4 %rhsPackedInt8x4 %resultInt32 %biasInt32 %gl_GlobalInvocationID
+OpExecutionMode %main LocalSize 64 1 1
+
+; Debug Information
+OpSource Slang 1
+OpName %index "index"                               ; id %12
+OpName %DispatchInfo_std430 "DispatchInfo_std430"   ; id %13
+OpMemberName %DispatchInfo_std430 0 "elementCount"
+OpName %dispatchInfo "dispatchInfo"                 ; id %15
+OpName %StructuredBuffer "StructuredBuffer"         ; id %27
+OpMemberName %StructuredBuffer 0 "__member0"
+OpName %lhsPackedInt8x4 "lhsPackedInt8x4"           ; id %30
+OpName %rhsPackedInt8x4 "rhsPackedInt8x4"           ; id %33
+OpName %RWStructuredBuffer "RWStructuredBuffer"     ; id %38
+OpMemberName %RWStructuredBuffer 0 "__member0"
+OpName %resultInt32 "resultInt32"                   ; id %41
+OpName %StructuredBuffer_0 "StructuredBuffer"       ; id %43
+OpMemberName %StructuredBuffer_0 0 "__member0"
+OpName %biasInt32 "biasInt32"                       ; id %45
+OpName %main "main"                                 ; id %2
+
+; Annotations
+OpDecorate %gl_GlobalInvocationID BuiltIn GlobalInvocationId
+OpDecorate %DispatchInfo_std430 Block
+OpMemberDecorate %DispatchInfo_std430 0 Offset 0
+OpDecorate %_ptr_StorageBuffer_uint ArrayStride 4
+OpDecorate %_runtimearr_uint ArrayStride 4
+OpDecorate %StructuredBuffer Block
+OpMemberDecorate %StructuredBuffer 0 Offset 0
+OpDecorate %lhsPackedInt8x4 Binding 0
+OpDecorate %lhsPackedInt8x4 DescriptorSet 0
+OpDecorate %lhsPackedInt8x4 NonWritable
+OpDecorate %rhsPackedInt8x4 Binding 1
+OpDecorate %rhsPackedInt8x4 DescriptorSet 0
+OpDecorate %rhsPackedInt8x4 NonWritable
+OpDecorate %_ptr_StorageBuffer_int ArrayStride 4
+OpDecorate %_runtimearr_int ArrayStride 4
+OpDecorate %RWStructuredBuffer Block
+OpMemberDecorate %RWStructuredBuffer 0 Offset 0
+OpDecorate %resultInt32 Binding 3
+OpDecorate %resultInt32 DescriptorSet 0
+OpDecorate %StructuredBuffer_0 Block
+OpMemberDecorate %StructuredBuffer_0 0 Offset 0
+OpDecorate %biasInt32 Binding 2
+OpDecorate %biasInt32 DescriptorSet 0
+OpDecorate %biasInt32 NonWritable
+
+; Types, variables and constants
+%void = OpTypeVoid
+%3 = OpTypeFunction %void
+%uint = OpTypeInt 32 0
+%v3uint = OpTypeVector %uint 3
+%_ptr_Input_v3uint = OpTypePointer Input %v3uint
+%DispatchInfo_std430 = OpTypeStruct %uint           ; Block
+%_ptr_PushConstant_DispatchInfo_std430 = OpTypePointer PushConstant %DispatchInfo_std430
+%int = OpTypeInt 32 1
+%int_0 = OpConstant %int 0
+%_ptr_PushConstant_uint = OpTypePointer PushConstant %uint
+%bool = OpTypeBool
+%_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint    ; ArrayStride 4
+%_runtimearr_uint = OpTypeRuntimeArray %uint                    ; ArrayStride 4
+%StructuredBuffer = OpTypeStruct %_runtimearr_uint              ; Block
+%_ptr_StorageBuffer_StructuredBuffer = OpTypePointer StorageBuffer %StructuredBuffer
+%_ptr_StorageBuffer_int = OpTypePointer StorageBuffer %int  ; ArrayStride 4
+%_runtimearr_int = OpTypeRuntimeArray %int                  ; ArrayStride 4
+%RWStructuredBuffer = OpTypeStruct %_runtimearr_int         ; Block
+%_ptr_StorageBuffer_RWStructuredBuffer = OpTypePointer StorageBuffer %RWStructuredBuffer
+%StructuredBuffer_0 = OpTypeStruct %_runtimearr_int     ; Block
+%_ptr_StorageBuffer_StructuredBuffer_0 = OpTypePointer StorageBuffer %StructuredBuffer_0
+%gl_GlobalInvocationID = OpVariable %_ptr_Input_v3uint Input    ; BuiltIn GlobalInvocationId
+%dispatchInfo = OpVariable %_ptr_PushConstant_DispatchInfo_std430 PushConstant
+%lhsPackedInt8x4 = OpVariable %_ptr_StorageBuffer_StructuredBuffer StorageBuffer    ; Binding 0, DescriptorSet 0, NonWritable
+%rhsPackedInt8x4 = OpVariable %_ptr_StorageBuffer_StructuredBuffer StorageBuffer    ; Binding 1, DescriptorSet 0, NonWritable
+%resultInt32 = OpVariable %_ptr_StorageBuffer_RWStructuredBuffer StorageBuffer      ; Binding 3, DescriptorSet 0
+%biasInt32 = OpVariable %_ptr_StorageBuffer_StructuredBuffer_0 StorageBuffer        ; Binding 2, DescriptorSet 0, NonWritable
+%uint_0 = OpConstant %uint 0
+
+; Function main
+%main = OpFunction %void None %3
+%4 = OpLabel
+OpSelectionMerge %50 None
+OpSwitch %uint_0 %51
+%51 = OpLabel
+%9 = OpLoad %v3uint %gl_GlobalInvocationID
+%index = OpCompositeExtract %uint %9 0
+%19 = OpAccessChain %_ptr_PushConstant_uint %dispatchInfo %int_0
+%20 = OpLoad %uint %19
+%22 = OpUGreaterThanEqual %bool %index %20
+OpSelectionMerge %6 None
+OpBranchConditional %22 %5 %6
+%5 = OpLabel
+OpBranch %50
+%6 = OpLabel
+%26 = OpAccessChain %_ptr_StorageBuffer_uint %lhsPackedInt8x4 %int_0 %index
+%31 = OpLoad %uint %26
+%32 = OpAccessChain %_ptr_StorageBuffer_uint %rhsPackedInt8x4 %int_0 %index
+%34 = OpLoad %uint %32
+%35 = OpSDot %int %31 %34 PackedVectorFormat4x8Bit
+%37 = OpAccessChain %_ptr_StorageBuffer_int %resultInt32 %int_0 %index
+%42 = OpAccessChain %_ptr_StorageBuffer_int %biasInt32 %int_0 %index
+%46 = OpLoad %int %42
+%47 = OpIAdd %int %35 %46
+OpStore %37 %47
+OpBranch %50
+%50 = OpLabel
+OpReturn
+OpFunctionEnd
