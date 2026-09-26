@@ -15,6 +15,8 @@ ASTC 8×8 sRGB 텍스처를 읽고, 인접한 두 픽셀을 64비트 레인으�
 - `LICENSE`, `NOTICE`, `SHA256SUMS.txt`: Apache 2.0 원문·저작권 표시·입력과 커널의 체크섬
 - `verify_device.ps1`, `verify/`: 팩에 포함된 SPIR-V를 실기기에서 재실행하는
   테스트 소스와 입력·기준값. GPU 커널 API에는 포함되지 않는다.
+- `android-app/`: 같은 검증 경로를 디버그 APK로 실행해 Sokatoa의 GFXR
+  트레이스에서 Vulkan compute dispatch를 볼 수 있는 래퍼.
 
 검증용 Android 실행 파일은 저장소에 넣지 않았다. `verify_device.ps1`이 로컬
 Android NDK로 `verify/hpc_fused_demo.cpp`와 SVE 기준값 코드를 빌드한다.
