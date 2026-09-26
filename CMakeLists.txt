@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.24)
 project(rdna3_unified_micro_engine LANGUAGES CXX)
 
-find_package(Vulkan 1.4.344 REQUIRED)
+find_package(Vulkan 1.3.304 REQUIRED)
 
 add_library(rdna3_micro_engine STATIC
     src/rdna3_micro_engine.cpp

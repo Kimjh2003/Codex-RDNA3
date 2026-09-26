@@ -10,10 +10,10 @@
 namespace rdna3::micro_engine {
 namespace {
 
-[[nodiscard]] bool isVulkan14OrNewer(std::uint32_t apiVersion) noexcept {
+[[nodiscard]] bool isVulkan13OrNewer(std::uint32_t apiVersion) noexcept {
     const std::uint32_t major = VK_API_VERSION_MAJOR(apiVersion);
     const std::uint32_t minor = VK_API_VERSION_MINOR(apiVersion);
-    return major > 1 || (major == 1 && minor >= 4);
+    return major > 1 || (major == 1 && minor >= 3);
 }
 
 [[nodiscard]] bool containsFlag(VkFlags value, VkFlags flag) noexcept {
@@ -35,6 +35,8 @@ namespace {
 }  // namespace
 
 RequiredDeviceFeatures::RequiredDeviceFeatures() noexcept {
+    core.pNext = &float16;
+    core.features.shaderInt16 = VK_TRUE;
     float16.pNext = &storage16;
     float16.shaderFloat16 = VK_TRUE;
 
@@ -45,9 +47,14 @@ RequiredDeviceFeatures::RequiredDeviceFeatures() noexcept {
     subgroupExtended.pNext = &subgroupSize;
     subgroupExtended.shaderSubgroupExtendedTypes = VK_TRUE;
 
-    subgroupSize.pNext = nullptr;
+    subgroupSize.pNext = &synchronization2;
     subgroupSize.subgroupSizeControl = VK_TRUE;
     subgroupSize.computeFullSubgroups = VK_TRUE;
+
+    synchronization2.pNext = &integerDot;
+    synchronization2.synchronization2 = VK_TRUE;
+    integerDot.pNext = nullptr;
+    integerDot.shaderIntegerDotProduct = VK_TRUE;
 }
 
 UnifiedDeviceSupport queryUnifiedDeviceSupport(
@@ -65,10 +72,16 @@ UnifiedDeviceSupport queryUnifiedDeviceSupport(
         VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_EXTENDED_TYPES_FEATURES};
     VkPhysicalDeviceSubgroupSizeControlFeatures subgroupSize{
         VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_FEATURES};
+    VkPhysicalDeviceSynchronization2Features synchronization2{
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES};
+    VkPhysicalDeviceShaderIntegerDotProductFeatures integerDot{
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_FEATURES};
 
     float16.pNext = &storage16;
     storage16.pNext = &subgroupExtended;
     subgroupExtended.pNext = &subgroupSize;
+    subgroupSize.pNext = &synchronization2;
+    synchronization2.pNext = &integerDot;
 
     VkPhysicalDeviceFeatures2 features{
         VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2};
@@ -97,9 +110,12 @@ UnifiedDeviceSupport queryUnifiedDeviceSupport(
         properties.properties.deviceName,
         support.deviceName.size());
     support.deviceName.back() = '\0';
-    support.vulkan14OrNewer =
-        isVulkan14OrNewer(properties.properties.apiVersion);
+    support.vulkan13OrNewer =
+        isVulkan13OrNewer(properties.properties.apiVersion);
     support.amdVendor = support.vendorId == kAmdVendorId;
+    support.xclipse940 = support.vendorId == kSamsungVendorId &&
+                         std::strstr(support.deviceName.data(), "Xclipse 940") != nullptr;
+    support.shaderInt16 = features.features.shaderInt16 == VK_TRUE;
     support.shaderFloat16 = float16.shaderFloat16 == VK_TRUE;
     support.storageBuffer16BitAccess =
         storage16.storageBuffer16BitAccess == VK_TRUE;
@@ -130,6 +146,8 @@ UnifiedDeviceSupport queryUnifiedDeviceSupport(
     support.packedSignedInt8DotAccelerated =
         dotProperties.integerDotProduct4x8BitPackedSignedAccelerated ==
         VK_TRUE;
+    support.shaderIntegerDotProduct = integerDot.shaderIntegerDotProduct == VK_TRUE;
+    support.synchronization2 = synchronization2.synchronization2 == VK_TRUE;
 
     const bool commonWaveRequirements = support.subgroupSizeControl &&
                                         support.computeFullSubgroups &&
@@ -143,11 +161,16 @@ UnifiedDeviceSupport queryUnifiedDeviceSupport(
 }
 
 void requireUnifiedRdna3Support(const UnifiedDeviceSupport& support) {
-    if (!support.vulkan14OrNewer) {
-        throw std::runtime_error("Vulkan 1.4 runtime support is required");
+    if (!support.vulkan13OrNewer) {
+        throw std::runtime_error("Vulkan 1.3 runtime support is required");
     }
-    if (!support.amdVendor) {
-        throw std::runtime_error("The selected device is not an AMD GPU");
+    if (!support.amdVendor && !support.xclipse940) {
+        throw std::runtime_error("AMD GPU or Samsung Xclipse 940 is required");
+    }
+    if (!support.shaderInt16 || !support.synchronization2 ||
+        !support.shaderIntegerDotProduct) {
+        throw std::runtime_error(
+            "shaderInt16, synchronization2 and shaderIntegerDotProduct are required");
     }
     if (!support.shaderFloat16 || !support.storageBuffer16BitAccess ||
         !support.uniformAndStorageBuffer16BitAccess) {

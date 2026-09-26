@@ -8,17 +8,13 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
-if (-not $VulkanHeaders) {
-    $candidate = Join-Path (Split-Path -Parent $root) 'Vulkan-Headers-v1.4.344'
-    if (Test-Path -LiteralPath (Join-Path $candidate 'include\vulkan\vulkan_core.h')) {
-        $VulkanHeaders = $candidate
-    } else {
-        throw 'Pass the Vulkan-Headers v1.4.344 checkout with -VulkanHeaders.'
-    }
-}
-$VulkanHeaders = (Resolve-Path -LiteralPath $VulkanHeaders).Path
 $ndk = Join-Path $SdkRoot 'ndk\30.0.15729638'
 $clang = Join-Path $ndk 'toolchains\llvm\prebuilt\windows-x86_64\bin\clang++.exe'
+$headers = if ($VulkanHeaders) {
+    Join-Path (Resolve-Path -LiteralPath $VulkanHeaders).Path 'include'
+} else {
+    Join-Path $ndk 'toolchains\llvm\prebuilt\windows-x86_64\sysroot\usr\include'
+}
 $build = Join-Path $root 'build\android-arm64'
 $archive = Join-Path $build 'librdna3_micro_engine.a'
 $runner = Join-Path $build 'rdna3_gpu_runner'
@@ -29,7 +25,7 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 & $clang --target=aarch64-linux-android33 -std=c++20 -O2 `
     -Wno-missing-field-initializers `
     -I (Join-Path $root 'src') `
-    -I (Join-Path $VulkanHeaders 'include') `
+    -I $headers `
     (Join-Path $root 'tests\rdna3_gpu_runner.cpp') $archive `
     -static-libstdc++ -lvulkan -o $runner
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

@@ -15,12 +15,13 @@
 #include <vulkan/vulkan.h>
 
 static_assert(
-    VK_HEADER_VERSION >= 344,
-    "Vulkan SDK headers 1.4.344 or newer are required");
+    VK_HEADER_VERSION >= 304,
+    "Vulkan SDK header revision 304 or newer is required");
 
 namespace rdna3::micro_engine {
 
 inline constexpr std::uint32_t kAmdVendorId = 0x1002;
+inline constexpr std::uint32_t kSamsungVendorId = 0x144d;
 inline constexpr std::uint32_t kWorkgroupSize = 64;
 inline constexpr std::size_t kKernelCount = 5;
 inline constexpr std::size_t kSchedulerLogCapacity = 256;
@@ -88,8 +89,10 @@ struct UnifiedDeviceSupport {
     std::uint32_t vendorId = 0;
     std::uint32_t deviceId = 0;
     std::array<char, VK_MAX_PHYSICAL_DEVICE_NAME_SIZE> deviceName{};
-    bool vulkan14OrNewer = false;
+    bool vulkan13OrNewer = false;
     bool amdVendor = false;
+    bool xclipse940 = false;
+    bool shaderInt16 = false;
     bool shaderFloat16 = false;
     bool storageBuffer16BitAccess = false;
     bool uniformAndStorageBuffer16BitAccess = false;
@@ -103,6 +106,8 @@ struct UnifiedDeviceSupport {
     bool wave32 = false;
     bool wave64 = false;
     bool packedSignedInt8DotAccelerated = false;
+    bool shaderIntegerDotProduct = false;
+    bool synchronization2 = false;
     std::uint32_t minSubgroupSize = 0;
     std::uint32_t maxSubgroupSize = 0;
     std::uint32_t maxComputeWorkgroupSubgroups = 0;
@@ -110,6 +115,8 @@ struct UnifiedDeviceSupport {
 
 // Keep this pNext chain alive until vkCreateDevice returns.
 struct RequiredDeviceFeatures {
+    VkPhysicalDeviceFeatures2 core{
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2};
     VkPhysicalDeviceShaderFloat16Int8Features float16{
         VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FLOAT16_INT8_FEATURES};
     VkPhysicalDevice16BitStorageFeatures storage16{
@@ -118,6 +125,10 @@ struct RequiredDeviceFeatures {
         VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_EXTENDED_TYPES_FEATURES};
     VkPhysicalDeviceSubgroupSizeControlFeatures subgroupSize{
         VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_FEATURES};
+    VkPhysicalDeviceSynchronization2Features synchronization2{
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES};
+    VkPhysicalDeviceShaderIntegerDotProductFeatures integerDot{
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_FEATURES};
 
     RequiredDeviceFeatures() noexcept;
     RequiredDeviceFeatures(const RequiredDeviceFeatures&) = delete;
@@ -125,7 +136,7 @@ struct RequiredDeviceFeatures {
     RequiredDeviceFeatures(RequiredDeviceFeatures&&) = delete;
     RequiredDeviceFeatures& operator=(RequiredDeviceFeatures&&) = delete;
 
-    [[nodiscard]] const void* head() const noexcept { return &float16; }
+    [[nodiscard]] const void* head() const noexcept { return &core; }
 };
 
 struct QueueCreateInfo {
@@ -191,7 +202,7 @@ struct SchedulerLogEntry {
 [[nodiscard]] UnifiedDeviceSupport queryUnifiedDeviceSupport(
     VkPhysicalDevice physicalDevice);
 
-// Throws std::runtime_error unless the complete RDNA3 package contract is met.
+// Throws unless the Vulkan 1.3 feature contract is met on AMD or Xclipse 940.
 void requireUnifiedRdna3Support(const UnifiedDeviceSupport& support);
 
 class MicroEngineScheduler final {

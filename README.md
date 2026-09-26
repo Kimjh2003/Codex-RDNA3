@@ -24,7 +24,7 @@
 
 지금까지 만든 계산 경로를 하나의 Vulkan compute 패키지로 병합한 예시다.
 
-- API/SDK 기준: Vulkan 1.4, 헤더 `VK_HEADER_VERSION >= 344`
+- API/SDK 기준: Vulkan 1.3, 헤더 `VK_HEADER_VERSION >= 304` (실기기 1.3.304 / NDK 헤더 335)
 - 중간 표현: SPIR-V 1.6
 - GPU 타깃: AMD RDNA3
 - 실행 폭: required subgroup size를 이용한 Wave32 + Wave64
@@ -50,7 +50,7 @@ SPIR-V가 특정 RDNA3 기계 명령을 강제하지는 않는다. 실제 선택
 
 우선순위는 `realtime > focus > normal > idle`의 strict ordering이다. 같은 단계에서는 `quantumDispatches`개씩 실행한 뒤 round-robin한다. `automatic` Wave 정책은 RDNA3의 VOPD가 Wave32 전용이라는 ISA 제약 때문에 Wave32를 선택하며, 모든 커널은 Wave64를 명시적으로 선택할 수도 있다.
 
-`JobFlags::barrierBefore`와 `barrierAfter`는 dispatch 사이에 Vulkan 1.4 `vkCmdPipelineBarrier2`를 넣어 storage write → compute read/write 의존성을 만든다. SVE/SME ingress 내부의 두 번의 `GroupMemoryBarrierWithGroupSync()`는 LDS word-plane 재배치의 work-group 동기화를 담당한다.
+`JobFlags::barrierBefore`와 `barrierAfter`는 dispatch 사이에 Vulkan 1.3 `vkCmdPipelineBarrier2`를 넣어 storage write → compute read/write 의존성을 만든다. SVE/SME ingress 내부의 두 번의 `GroupMemoryBarrierWithGroupSync()`는 LDS word-plane 재배치의 work-group 동기화를 담당한다.
 
 ## 빌드와 검증
 
@@ -61,7 +61,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\compile_all.ps
   -SlangCompiler C:\path\to\slangc.exe
 ```
 
-C++ 라이브러리는 Vulkan SDK 1.4.344 이상과 C++20 컴파일러가 필요하다.
+C++ 라이브러리는 Vulkan SDK 1.3.304 이상과 C++20 컴파일러가 필요하다.
 
 ```powershell
 cmake -S . -B out
@@ -69,29 +69,24 @@ cmake --build out --config Release
 ```
 
 Android Studio가 설치한 NDK 30·CMake 4.1.2·Ninja로 AArch64 정적 라이브러리도
-교차 빌드할 수 있다. NDK 30의 Vulkan 헤더는 revision 335여서 이 저장소의
-최소 요구치 344에 못 미친다. [공식 Vulkan-Headers v1.4.344](https://github.com/KhronosGroup/Vulkan-Headers/releases/tag/v1.4.344)를
-별도로 준비한 뒤 해당 체크아웃 경로를 전달한다.
+교차 빌드할 수 있다. NDK 30의 Vulkan 헤더 revision 335가 최소 요구치 304를
+충족하므로 별도 Vulkan-Headers 체크아웃은 필요하지 않다.
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_android_arm64.ps1 `
-  -VulkanHeaders C:\path\to\Vulkan-Headers
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_android_arm64.ps1
 ```
 
-결과는 `build/android-arm64/librdna3_micro_engine.a`다. 이 빌드는 Android
-AArch64용 C++ 라이브러리 생성까지 확인하며, RDNA3 GPU에서의 Vulkan 1.4
-실행 검증은 포함하지 않는다. [빌드 기록](docs/validation-2026-09-27-android.md).
+결과는 `build/android-arm64/librdna3_micro_engine.a`다.
+[빌드 기록](docs/validation-2026-09-27-android.md).
 
-별도의 [Xclipse 940 GPU 실행 검증](docs/validation-2026-09-27-xclipse-rdna3-gpu.md)은
+[Xclipse 940 GPU 실행 검증](docs/validation-2026-09-27-xclipse-rdna3-gpu.md)은
 같은 정적 라이브러리와 `prebuilt/`의 원본 셰이더 다섯 개를 사용한다. 폰의
-Vulkan 런타임은 1.3.304이고 vendor ID는 Samsung `0x144d`라
-`requireUnifiedRdna3Support()`의 엄격한 AMD/Vulkan 1.4 조건은 통과하지 않는다.
-검증 실행 파일은 이 두 조건을 명시적으로 구분하고, 지원되는 기능을 확인한 뒤
+Vulkan 런타임은 1.3.304이고 vendor ID는 Samsung `0x144d`다.
+`requireUnifiedRdna3Support()`가 Vulkan 1.3 기능과 Xclipse 940을 확인한 뒤
 원본 `MicroEngineScheduler`에서 Wave32·Wave64 총 10개 GPU 작업을 제출한다.
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\verify_android_gpu.ps1 `
-  -VulkanHeaders C:\path\to\Vulkan-Headers
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\verify_android_gpu.ps1
 ```
 
 표준 라이브러리만 쓰는 수치·스케줄링·SPIR-V 계약 테스트:
@@ -110,7 +105,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\check_rdna3_is
 ## 호스트 연결 순서
 
 1. `queryUnifiedDeviceSupport()`와 `requireUnifiedRdna3Support()`로 RDNA3 기능을 확인한다.
-2. `RequiredDeviceFeatures::head()`를 `VkDeviceCreateInfo::pNext`에 연결한다.
+2. `RequiredDeviceFeatures::head()`를 `VkDeviceCreateInfo::pNext`에 연결하고 `pEnabledFeatures`는 null로 둔다.
 3. 셰이더별 descriptor set layout과 최대 16바이트 push constant range를 만든다.
 4. `MicroEngineScheduler`를 만들고 5개 shader module/layout을 `registerKernel()`로 등록한다.
 5. `addQueue()`, `enqueue()` 후 command buffer 안에서 `recordBatch()`를 부른다.

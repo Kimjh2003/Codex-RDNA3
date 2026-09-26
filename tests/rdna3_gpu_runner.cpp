@@ -1,7 +1,6 @@
 // 해당코드는 Codex로 수정됨
 // Real GPU integration check for the existing five prebuilt RDNA3 shaders and
-// MicroEngineScheduler. This is an Xclipse 940 Vulkan 1.3 compatibility runner;
-// it does not change the strict AMD/Vulkan 1.4 library contract.
+// MicroEngineScheduler on the Vulkan 1.3 Xclipse 940 target.
 #include "rdna3_micro_engine.hpp"
 
 #include <vulkan/vulkan.h>
@@ -268,40 +267,19 @@ int main(int argc, char** argv) {
         }
         if (!physical) throw std::runtime_error("Xclipse 940 Vulkan device not found");
         const auto support = queryUnifiedDeviceSupport(physical);
+        requireUnifiedRdna3Support(support);
         std::printf("GPU=%s vendor=0x%04x Vulkan=%u.%u.%u header=%u\n",
                     properties.deviceName, properties.vendorID,
                     VK_API_VERSION_MAJOR(properties.apiVersion),
                     VK_API_VERSION_MINOR(properties.apiVersion),
                     VK_API_VERSION_PATCH(properties.apiVersion), VK_HEADER_VERSION);
-        std::printf("strictRDNA3=(Vulkan1.4=%u AMDvendor=%u) Wave32=%u Wave64=%u "
-                    "FP16=%u packedINT8dot=%u\n", support.vulkan14OrNewer,
-                    support.amdVendor, support.wave32, support.wave64,
+        std::printf("RDNA3contract=(Vulkan1.3=%u AMDvendor=%u Xclipse940=%u) "
+                    "Wave32=%u Wave64=%u "
+                    "FP16=%u packedINT8dot=%u\n", support.vulkan13OrNewer,
+                    support.amdVendor, support.xclipse940,
+                    support.wave32, support.wave64,
                     support.shaderFloat16, support.packedSignedInt8DotAccelerated);
         std::fflush(stdout);
-        if (properties.vendorID != 0x144d ||
-            VK_API_VERSION_MAJOR(properties.apiVersion) != 1 ||
-            VK_API_VERSION_MINOR(properties.apiVersion) < 3 ||
-            !support.wave32 || !support.wave64 || !support.shaderFloat16 ||
-            !support.storageBuffer16BitAccess ||
-            !support.uniformAndStorageBuffer16BitAccess ||
-            !support.shaderSubgroupExtendedTypes || !support.subgroupBasic ||
-            !support.subgroupArithmetic ||
-            !support.packedSignedInt8DotAccelerated)
-            throw std::runtime_error("Xclipse 940 compatibility features missing");
-
-        VkPhysicalDeviceSynchronization2Features syncQuery{
-            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES};
-        VkPhysicalDeviceShaderIntegerDotProductFeatures dotQuery{
-            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_FEATURES};
-        syncQuery.pNext = &dotQuery;
-        VkPhysicalDeviceFeatures2 featureQuery{
-            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2};
-        featureQuery.pNext = &syncQuery;
-        vkGetPhysicalDeviceFeatures2(physical, &featureQuery);
-        if (!syncQuery.synchronization2 || !dotQuery.shaderIntegerDotProduct ||
-            !featureQuery.features.shaderInt16)
-            throw std::runtime_error(
-                "synchronization2, shaderIntegerDotProduct or shaderInt16 unavailable");
 
         std::uint32_t familyCount = 0;
         vkGetPhysicalDeviceQueueFamilyProperties(physical, &familyCount, nullptr);
@@ -318,21 +296,10 @@ int main(int argc, char** argv) {
         queueInfo.queueCount = 1;
         queueInfo.pQueuePriorities = &queuePriority;
         RequiredDeviceFeatures required{};
-        VkPhysicalDeviceSynchronization2Features syncEnabled{
-            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES};
-        syncEnabled.synchronization2 = VK_TRUE;
-        VkPhysicalDeviceShaderIntegerDotProductFeatures dotEnabled{
-            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_FEATURES};
-        dotEnabled.shaderIntegerDotProduct = VK_TRUE;
-        required.subgroupSize.pNext = &syncEnabled;
-        syncEnabled.pNext = &dotEnabled;
         VkDeviceCreateInfo deviceInfo{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
         deviceInfo.pNext = required.head();
         deviceInfo.queueCreateInfoCount = 1;
         deviceInfo.pQueueCreateInfos = &queueInfo;
-        VkPhysicalDeviceFeatures coreEnabled{};
-        coreEnabled.shaderInt16 = VK_TRUE;
-        deviceInfo.pEnabledFeatures = &coreEnabled;
         VkDevice device = VK_NULL_HANDLE;
         check(vkCreateDevice(physical, &deviceInfo, nullptr, &device), "vkCreateDevice");
         VkQueue queue = VK_NULL_HANDLE;

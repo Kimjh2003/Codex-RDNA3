@@ -4,6 +4,11 @@
 
 ## 공통 pipeline 조건
 
+- Vulkan 1.3 이상, 헤더 revision 304 이상; Xclipse 940 검증 런타임은 1.3.304
+- `requireUnifiedRdna3Support()`가 AMD GPU 또는 Samsung Xclipse 940과
+  Wave32/64, FP16/16-bit storage, INT8 dot, synchronization2 기능을 검사
+- `RequiredDeviceFeatures::head()`는 `VkPhysicalDeviceFeatures2` 체인을
+  반환한다. 이를 `VkDeviceCreateInfo::pNext`에 넣고 `pEnabledFeatures`는 null로 둔다.
 - compute entry point: `main`
 - local size: 64 × 1 × 1
 - pipeline stage flag: `VK_PIPELINE_SHADER_STAGE_CREATE_REQUIRE_FULL_SUBGROUPS_BIT`

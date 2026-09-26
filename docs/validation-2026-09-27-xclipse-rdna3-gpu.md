@@ -7,17 +7,16 @@
 ## 대상과 경계
 
 - 기기: Galaxy S24 `SM-S921N`, Samsung Xclipse 940, vendor ID `0x144d`
-- Vulkan **런타임 1.3.304**, 빌드 헤더 **revision 344** (`v1.4.344`)
+- Vulkan **런타임 1.3.304**, NDK 빌드 헤더 **revision 335**
 - 빌드: Android NDK 30, `arm64-v8a`; 실행 파일은 API 33을 대상으로 링크
 - 실행 코드: `src/rdna3_micro_engine.cpp`의 **원본 `MicroEngineScheduler`**
 - 커널: `prebuilt/`에 저장된 원본 SPIR-V 1.6 파일 다섯 개
 
-`requireUnifiedRdna3Support()`는 Vulkan 1.4 이상과 AMD vendor ID `0x1002`를
-강제하므로 이 기기에서는 실패한다. 실행 검증은 그 함수를 우회하는
-**Xclipse 940 호환 실행 파일**에서 수행했다. 실행 파일은 Vulkan 1.3,
-Samsung vendor ID, Wave32·Wave64, FP16/16-bit storage, subgroup 연산,
-packed signed INT8 dot, synchronization2와 shaderInt16을 확인하고, 원본
-스케줄러에 다섯 셰이더를 등록한다. 엄격한 AMD/Vulkan 1.4 계약을 바꾸지 않았다.
+`requireUnifiedRdna3Support()`는 Vulkan 1.3 이상에서 AMD GPU 또는 Samsung
+Xclipse 940을 허용하며, Wave32·Wave64, FP16/16-bit storage, subgroup 연산,
+packed signed INT8 dot, synchronization2와 shaderInt16을 확인한다. 실행
+검증은 이 **본체 기능 검사 함수를 통과한 뒤** 원본 스케줄러에 다섯 셰이더를
+등록했다. 셰이더와 스케줄러의 dispatch 로직은 변경하지 않았다.
 
 ## 실기기 결과
 
@@ -39,12 +38,11 @@ recording, `vkQueueSubmit`, fence wait, GPU readback을 실행했다. 이는 기
 
 ## 재현
 
-Vulkan-Headers `v1.4.344`, Android SDK/NDK, USB 디버깅을 허용한 기기를 준비한 뒤
+Android SDK/NDK, USB 디버깅을 허용한 기기를 준비한 뒤
 저장소 루트에서 실행한다.
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\verify_android_gpu.ps1 `
-  -VulkanHeaders C:\path\to\Vulkan-Headers
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\verify_android_gpu.ps1
 ```
 
 스크립트는 AArch64 정적 라이브러리와 GPU 검증 실행 파일을 빌드하고, 원본
@@ -54,6 +52,5 @@ SPIR-V 다섯 개를 기기로 전송해 실행한다. 실행 로그는
 
 ## 남은 범위
 
-Xclipse 940의 호환 Vulkan 1.3 경로를 검증한 결과다. AMD Radeon의 Vulkan 1.4
-런타임에서 엄격한 `requireUnifiedRdna3Support()` 경로, ROCm/HIP/ROCr 실행,
-AMD 드라이버 최종 ISA 및 성능 향상은 검증하지 않았다.
+Xclipse 940의 Vulkan 1.3 본체 경로를 검증한 결과다. AMD Radeon GPU에서의
+실행, ROCm/HIP/ROCr 실행, AMD 드라이버 최종 ISA 및 성능 향상은 검증하지 않았다.
