@@ -43,12 +43,17 @@ function Assert-NotContains([string]$Text, [string]$Pattern, [string]$Name) {
 }
 
 $slangc = Resolve-SlangCompiler $SlangCompiler
-$outputRoot = Join-Path $PSScriptRoot $OutputDirectory
+$repoRoot = Split-Path -Parent $PSScriptRoot
+$outputRoot = if ([System.IO.Path]::IsPathRooted($OutputDirectory)) {
+    $OutputDirectory
+} else {
+    Join-Path $repoRoot $OutputDirectory
+}
 New-Item -ItemType Directory -Force -Path $outputRoot | Out-Null
 
 $shaders = @(
     @{
-        Source = "shaders-rdna_sve_sme_u64_ingress.slang"
+        Source = "rdna_sve_sme_u64_ingress.slang"
         Name = "rdna_sve_sme_u64_ingress"
         Capability = "spirv_1_6+spvGroupNonUniform"
         Extra = @()
@@ -56,7 +61,7 @@ $shaders = @(
         Forbidden = @("OpTypeInt 64")
     },
     @{
-        Source = "shaders-rdna3_pure_fp32_wave.slang"
+        Source = "rdna3_pure_fp32_wave.slang"
         Name = "rdna3_pure_fp32_wave"
         Capability = "spirv_1_6+spvGroupNonUniform+spvGroupNonUniformArithmetic"
         Extra = @("-fp-mode", "precise")
@@ -68,7 +73,7 @@ $shaders = @(
         Forbidden = @("OpTypeFloat 16")
     },
     @{
-        Source = "shaders-rdna3_pure_fp16x2_wave.slang"
+        Source = "rdna3_pure_fp16x2_wave.slang"
         Name = "rdna3_pure_fp16x2_wave"
         Capability = "spirv_1_6+spvGroupNonUniform+spvGroupNonUniformArithmetic"
         Extra = @()
@@ -80,7 +85,7 @@ $shaders = @(
         Forbidden = @("OpTypeFloat 32")
     },
     @{
-        Source = "shaders-rdna3_fp16x2_fp32_mixed.slang"
+        Source = "rdna3_fp16x2_fp32_mixed.slang"
         Name = "rdna3_fp16x2_fp32_mixed"
         Capability = "spirv_1_6"
         Extra = @()
@@ -94,7 +99,7 @@ $shaders = @(
         Forbidden = @()
     },
     @{
-        Source = "shaders-rdna3_int8x4_int32_mixed.slang"
+        Source = "rdna3_int8x4_int32_mixed.slang"
         Name = "rdna3_int8x4_int32_mixed"
         Capability = "spirv_1_6"
         Extra = @()
@@ -109,7 +114,7 @@ $shaders = @(
 )
 
 foreach ($shader in $shaders) {
-    $source = Join-Path $PSScriptRoot $shader.Source
+    $source = Join-Path (Join-Path $repoRoot 'shaders') $shader.Source
     $spv = Join-Path $outputRoot ($shader.Name + ".spv")
     $assembly = Join-Path $outputRoot ($shader.Name + ".spv-asm")
 

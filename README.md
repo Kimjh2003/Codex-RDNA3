@@ -1,10 +1,26 @@
 > 해당코드는 Codex로 수정됨
 
-# RDNA3 unified micro-engine scheduler
+# RDNA3 Vulkan compute demos
 
-Xclipse 940에서 검증한 Android Vulkan 1.3 커널 데모는
-[mobile/xclipse940-vulkan-kernel](mobile/xclipse940-vulkan-kernel/README.md)에 있다.
-이 모바일 데모는 별도 Vulkan 구현이며 ROCm/HIP/ROCr 런타임을 포함하지 않는다.
+이 저장소에는 두 개의 독립적인 Vulkan compute 데모가 있다.
+
+| 위치 | 대상 | 검증 범위 |
+| --- | --- | --- |
+| [`src/`](src/) + [`shaders/`](shaders/) | AMD RDNA3용 논리 micro-engine | SPIR-V 계약과 수치·스케줄링 테스트. RDNA3 GPU 실행은 미검증 |
+| [`mobile/xclipse940-vulkan-kernel/`](mobile/xclipse940-vulkan-kernel/README.md) | Samsung Xclipse 940 / Android Vulkan 1.3 | Galaxy S24 실기기에서 ASTC 입력과 GPU 출력 검증 |
+
+두 데모 모두 Vulkan으로 독립 구현했으며 ROCm/HIP/ROCr 런타임을 포함하지 않는다.
+
+## 저장소 구성
+
+- [`src/`](src/): RDNA3 호스트 라이브러리
+- [`shaders/`](shaders/): Slang compute 셰이더 소스
+- [`prebuilt/`](prebuilt/): 2026-08-12에 검증한 SPIR-V 및 어셈블리와 바이너리 체크섬
+- [`scripts/`](scripts/), [`tests/`](tests/): 컴파일·ISA 점검 스크립트와 Python 테스트
+- [`docs/`](docs/): API·표준 대응과 당시 검증 기록
+- [`mobile/`](mobile/): Xclipse 940 모바일 데모
+
+## RDNA3 논리 micro-engine
 
 지금까지 만든 계산 경로를 하나의 Vulkan compute 패키지로 병합한 예시다.
 
@@ -41,7 +57,7 @@ SPIR-V가 특정 RDNA3 기계 명령을 강제하지는 않는다. 실제 선택
 Slang 셰이더를 컴파일한다.
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools-compile_all.ps1 `
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\compile_all.ps1 `
   -SlangCompiler C:\path\to\slangc.exe
 ```
 
@@ -55,13 +71,13 @@ cmake --build out --config Release
 표준 라이브러리만 쓰는 수치·스케줄링·SPIR-V 계약 테스트:
 
 ```powershell
-python .\tests-test_unified_micro_engine.py
+python .\tests\test_unified_micro_engine.py
 ```
 
 AMD RGA 또는 드라이버 도구로 만든 `.isa` 파일을 검사하려면 각 build 이름과 같은 이름으로 모은 뒤 실행한다.
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools-check_rdna3_isa.ps1 `
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\check_rdna3_isa.ps1 `
   -IsaDirectory C:\path\to\isa-dumps
 ```
 
@@ -74,4 +90,11 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools-check_rdna3_isa.
 5. `addQueue()`, `enqueue()` 후 command buffer 안에서 `recordBatch()`를 부른다.
 6. 일반 Vulkan semaphore/fence/timeline semaphore로 제출 완료를 추적한다.
 
-세부 필드와 descriptor binding은 [RDNA3-Unified-MicroEngine-Codex-2026-08-12-docs-api-and-layouts.md](RDNA3-Unified-MicroEngine-Codex-2026-08-12-docs-api-and-layouts.md), 표준 문서와의 대응은 [RDNA3-Unified-MicroEngine-Codex-2026-08-12-docs-standards-mapping.md](RDNA3-Unified-MicroEngine-Codex-2026-08-12-docs-standards-mapping.md)를 참고한다.
+세부 필드와 descriptor binding은 [API와 레이아웃](docs/api-and-layouts.md),
+표준 문서와의 대응은 [표준 대응](docs/standards-mapping.md),
+당시 검증 결과는 [검증 기록](docs/validation-2026-08-12.md)을 참고한다.
+
+## 라이선스
+
+저장소는 [Apache License 2.0](LICENSE)으로 공개한다. 모바일 데모의
+독립 배포를 위한 라이선스와 저작권 표시는 해당 디렉터리에도 있다.
