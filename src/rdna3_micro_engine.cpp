@@ -294,7 +294,7 @@ void MicroEngineScheduler::addQueue(const QueueCreateInfo& createInfo) {
         throw std::invalid_argument(
             "quantumDispatches must be greater than zero");
     }
-    priorityIndex(createInfo.priority);
+    (void)priorityIndex(createInfo.priority);
 
     const std::uint64_t before = monotonicNowNs();
     std::scoped_lock lock(mutex_);

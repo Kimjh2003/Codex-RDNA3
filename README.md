@@ -68,6 +68,20 @@ cmake -S . -B out
 cmake --build out --config Release
 ```
 
+Android Studio가 설치한 NDK 30·CMake 4.1.2·Ninja로 AArch64 정적 라이브러리도
+교차 빌드할 수 있다. NDK 30의 Vulkan 헤더는 revision 335여서 이 저장소의
+최소 요구치 344에 못 미친다. [공식 Vulkan-Headers v1.4.344](https://github.com/KhronosGroup/Vulkan-Headers/releases/tag/v1.4.344)를
+별도로 준비한 뒤 해당 체크아웃 경로를 전달한다.
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_android_arm64.ps1 `
+  -VulkanHeaders C:\path\to\Vulkan-Headers
+```
+
+결과는 `build/android-arm64/librdna3_micro_engine.a`다. 이 빌드는 Android
+AArch64용 C++ 라이브러리 생성까지 확인하며, RDNA3 GPU에서의 Vulkan 1.4
+실행 검증은 포함하지 않는다. [빌드 기록](docs/validation-2026-09-27-android.md).
+
 표준 라이브러리만 쓰는 수치·스케줄링·SPIR-V 계약 테스트:
 
 ```powershell
