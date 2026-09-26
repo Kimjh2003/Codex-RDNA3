@@ -1,0 +1,7 @@
+CPU SVE=1 SVE2=1 currentVL=128 maxVL=128 bits u64Lanes=2 logicalLanes=32 passesPerTile=16
+GPU=Samsung Xclipse 940 Vulkan=1.3.304 ASTC_LDR=1 header=335
+dispatch kernel=fusedAstcU64 groups=1024,1,1 local=32,1,1
+submission token=1 packets=1 complete (Vulkan fence)
+ASTC RGBA mismatched bytes=0/262144
+SVE/GPU word-plane mismatches=0/65536
+PASS: one fused dispatch, 1024 logical 2048-bit tiles

@@ -1,0 +1,4 @@
+verify/hpc_fused_demo
+verify/sve_reference.o
+verify/device_output.rgba
+verify/device_word_planes.bin

@@ -1,0 +1,22 @@
+2026-09-27 Galaxy S24 SM-S921N / Samsung Xclipse 940
+HPC-style fused ASTC -> u64 layout pipeline v4
+
+GPU-reported Vulkan API: 1.3.304
+CPU HWCAP_SVE=1 HWCAP2_SVE2=1
+CPU SVE current/max VL: 128/128 bits (2 u64 lanes)
+Logical tile: 32 u64 lanes = 2048 bits, 16 CPU SVE passes per tile
+GPU compute: fusedAstcU64, 1024 workgroups x 32 invocations
+Compute dispatches: 1
+Completion: one Vulkan fence, one submission
+ASTC RGBA: 0 / 262144 mismatched bytes versus prior device golden
+GPU word planes: 0 / 65536 mismatched words versus CPU SVE
+RGBA SHA256: 2A4781C544EB53A84F2BF9D732A8FF606A0B6A7BA43C9137DC734CBF3B6EF5A2
+Word-plane SHA256: 336AC47D027D54052CC15F468517CE995F3D7F41C1B6D3A610C3FD628470F19F
+Both outputs byte-identical to v3
+Process result: PASS (exit 0)
+GPU runtime speedup: not measured
+
+Packaged SPIR-V re-run on the same device: PASS (exit 0)
+Pulled RGBA SHA256 matched golden.rgba
+Pulled word-plane SHA256 matched expected_word_planes.bin
+Reproduction command: ./verify_device.ps1

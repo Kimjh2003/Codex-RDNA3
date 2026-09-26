@@ -1,0 +1,38 @@
+#version 450
+layout(local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) uniform sampler2D astcImage;
+layout(set = 0, binding = 1, std430) writeonly buffer AuditRGBA {
+    uint pixels[];
+} auditRGBA;
+layout(set = 0, binding = 2, std430) writeonly buffer WordPlanes {
+    uint words[];
+} wordPlanes;
+layout(push_constant) uniform ImageSize {
+    uint width;
+    uint height;
+} imageSize;
+
+void main() {
+    uint tile = gl_WorkGroupID.x;
+    uint lane = gl_LocalInvocationID.x;
+    uint firstPixel = tile * 64u + lane * 2u;
+    uint pixelCount = imageSize.width * imageSize.height;
+    if (firstPixel + 1u >= pixelCount) return;
+
+    ivec2 firstCoord = ivec2(firstPixel % imageSize.width,
+                              firstPixel / imageSize.width);
+    uint secondPixel = firstPixel + 1u;
+    ivec2 secondCoord = ivec2(secondPixel % imageSize.width,
+                               secondPixel / imageSize.width);
+    uint low = packUnorm4x8(texelFetch(astcImage, firstCoord, 0));
+    uint high = packUnorm4x8(texelFetch(astcImage, secondCoord, 0));
+
+    // The RGBA output is an audit copy. The word planes are computed directly
+    // from ASTC samples; no second dispatch or intermediate-buffer read exists.
+    auditRGBA.pixels[firstPixel] = low;
+    auditRGBA.pixels[secondPixel] = high;
+    wordPlanes.words[tile * 64u + lane] = low ^ (low << 1u);
+    wordPlanes.words[tile * 64u + 32u + lane] =
+        high ^ ((high << 1u) | (low >> 31u));
+}

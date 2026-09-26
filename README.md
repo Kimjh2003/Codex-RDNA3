@@ -2,6 +2,10 @@
 
 # RDNA3 unified micro-engine scheduler
 
+Xclipse 940에서 검증한 Android Vulkan 1.3 커널 데모는
+[mobile/xclipse940-vulkan-kernel](mobile/xclipse940-vulkan-kernel/README.md)에 있다.
+이 모바일 데모는 별도 Vulkan 구현이며 ROCm/HIP/ROCr 런타임을 포함하지 않는다.
+
 지금까지 만든 계산 경로를 하나의 Vulkan compute 패키지로 병합한 예시다.
 
 - API/SDK 기준: Vulkan 1.4, 헤더 `VK_HEADER_VERSION >= 344`
