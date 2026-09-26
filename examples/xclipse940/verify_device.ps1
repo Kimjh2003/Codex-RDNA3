@@ -8,7 +8,7 @@ $fixture = Join-Path $root 'verify'
 & (Join-Path $fixture 'build.ps1') -NdkRoot $NdkRoot
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 $devices = & adb devices
-if (($devices | Select-String '\s+device$').Count -ne 1) {
+if (@($devices | Select-String '\s+device$').Count -ne 1) {
     throw 'Connect exactly one Android device with USB debugging enabled.'
 }
 
@@ -34,7 +34,10 @@ $runOutput = & adb shell /data/local/tmp/xc_verify_demo `
 $runExit = $LASTEXITCODE
 $runOutput | Write-Output
 if ($runExit -ne 0) { exit $runExit }
-$runOutput | Set-Content -LiteralPath (Join-Path $fixture 'device_run.log') -Encoding utf8
+[System.IO.File]::WriteAllLines(
+    (Join-Path $fixture 'device_run.log'),
+    [string[]]$runOutput,
+    [System.Text.UTF8Encoding]::new($false))
 
 & adb pull /data/local/tmp/xc_verify_output.rgba (Join-Path $fixture 'device_output.rgba')
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
