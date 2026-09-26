@@ -6,7 +6,7 @@
 
 | 위치 | 대상 | 검증 범위 |
 | --- | --- | --- |
-| [`src/`](src/) + [`shaders/`](shaders/) | AMD RDNA3용 논리 micro-engine | SPIR-V 계약과 수치·스케줄링 테스트. RDNA3 GPU 실행은 미검증 |
+| [`src/`](src/) + [`shaders/`](shaders/) | AMD RDNA3용 논리 micro-engine | SPIR-V 계약과 수치·스케줄링 테스트. Xclipse 940에서 원본 스케줄러·셰이더 10회 GPU dispatch 검증. AMD Radeon GPU 실행은 미검증 |
 | [`mobile/xclipse940-vulkan-kernel/`](mobile/xclipse940-vulkan-kernel/README.md) | Samsung Xclipse 940 / Android Vulkan 1.3 | Galaxy S24 실기기에서 ASTC 입력과 GPU 출력 검증 |
 
 두 데모 모두 Vulkan으로 독립 구현했으며 ROCm/HIP/ROCr 런타임을 포함하지 않는다.
@@ -81,6 +81,18 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_android_
 결과는 `build/android-arm64/librdna3_micro_engine.a`다. 이 빌드는 Android
 AArch64용 C++ 라이브러리 생성까지 확인하며, RDNA3 GPU에서의 Vulkan 1.4
 실행 검증은 포함하지 않는다. [빌드 기록](docs/validation-2026-09-27-android.md).
+
+별도의 [Xclipse 940 GPU 실행 검증](docs/validation-2026-09-27-xclipse-rdna3-gpu.md)은
+같은 정적 라이브러리와 `prebuilt/`의 원본 셰이더 다섯 개를 사용한다. 폰의
+Vulkan 런타임은 1.3.304이고 vendor ID는 Samsung `0x144d`라
+`requireUnifiedRdna3Support()`의 엄격한 AMD/Vulkan 1.4 조건은 통과하지 않는다.
+검증 실행 파일은 이 두 조건을 명시적으로 구분하고, 지원되는 기능을 확인한 뒤
+원본 `MicroEngineScheduler`에서 Wave32·Wave64 총 10개 GPU 작업을 제출한다.
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\verify_android_gpu.ps1 `
+  -VulkanHeaders C:\path\to\Vulkan-Headers
+```
 
 표준 라이브러리만 쓰는 수치·스케줄링·SPIR-V 계약 테스트:
 
