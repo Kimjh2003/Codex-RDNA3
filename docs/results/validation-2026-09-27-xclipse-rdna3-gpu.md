@@ -9,8 +9,8 @@
 - 기기: Galaxy S24 `SM-S921N`, Samsung Xclipse 940, vendor ID `0x144d`
 - Vulkan **런타임 1.3.304**, NDK 빌드 헤더 **revision 335**
 - 빌드: Android NDK 30, `arm64-v8a`; 실행 파일은 API 33을 대상으로 링크
-- 실행 코드: `src/rdna3_micro_engine.cpp`의 **원본 `MicroEngineScheduler`**
-- 커널: `prebuilt/`에 저장된 원본 SPIR-V 1.6 파일 다섯 개
+- 실행 코드: `engine/rdna3_micro_engine.cpp`의 **원본 `MicroEngineScheduler`**
+- 커널: `kernels/compiled/`에 저장된 원본 SPIR-V 1.6 파일 다섯 개
 
 `requireUnifiedRdna3Support()`는 Vulkan 1.3 이상에서 AMD GPU 또는 Samsung
 Xclipse 940을 허용하며, Wave32·Wave64, FP16/16-bit storage, subgroup 연산,

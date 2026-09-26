@@ -24,7 +24,7 @@ $runner = Join-Path $build 'rdna3_gpu_runner'
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 & $clang --target=aarch64-linux-android33 -std=c++20 -O2 `
     -Wno-missing-field-initializers `
-    -I (Join-Path $root 'src') `
+    -I (Join-Path $root 'engine') `
     -I $headers `
     (Join-Path $root 'tests\rdna3_gpu_runner.cpp') $archive `
     -static-libstdc++ -lvulkan -o $runner
@@ -43,7 +43,7 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 & adb shell chmod 755 "$remote/rdna3_gpu_runner"
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-Get-ChildItem -LiteralPath (Join-Path $root 'prebuilt') -File |
+Get-ChildItem -LiteralPath (Join-Path $root 'kernels\compiled') -File |
     Where-Object { $_.Extension -eq '.spv' } | ForEach-Object {
     & adb push $_.FullName "$remote/$($_.Name)"
     if ($LASTEXITCODE -ne 0) { throw "adb push failed: $($_.Name)" }

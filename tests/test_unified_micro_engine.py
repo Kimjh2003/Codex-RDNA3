@@ -131,24 +131,24 @@ class SchedulerPolicyTests(unittest.TestCase):
 class SourceContractTests(unittest.TestCase):
     def test_codex_marker_and_shader_contracts(self) -> None:
         text_files = [ROOT / "README.md", ROOT / "CMakeLists.txt"]
-        for folder in ("src", "shaders", "scripts", "tests", "docs"):
-            text_files.extend(path for path in (ROOT / folder).iterdir() if path.is_file())
+        for folder in ("engine", "kernels/source", "scripts", "tests", "docs"):
+            text_files.extend(path for path in (ROOT / folder).rglob("*") if path.is_file())
         self.assertGreaterEqual(len(text_files), 10)
         for path in text_files:
             self.assertIn("해당코드는 Codex로 수정됨", path.read_text(encoding="utf-8-sig"), path.name)
 
-        int8_shader = (ROOT / "shaders" / "rdna3_int8x4_int32_mixed.slang").read_text(
+        int8_shader = (ROOT / "kernels/source" / "rdna3_int8x4_int32_mixed.slang").read_text(
             encoding="utf-8"
         )
         self.assertIn("DotProductInput4x8BitPacked", int8_shader)
         self.assertIn("PackedVectorFormat4x8Bit", int8_shader)
-        ingress_shader = (ROOT / "shaders" / "rdna_sve_sme_u64_ingress.slang").read_text(
+        ingress_shader = (ROOT / "kernels/source" / "rdna_sve_sme_u64_ingress.slang").read_text(
             encoding="utf-8"
         )
         self.assertEqual(ingress_shader.count("GroupMemoryBarrierWithGroupSync"), 2)
 
     def test_prebuilt_spirv_contracts(self) -> None:
-        build = ROOT / "prebuilt"
+        build = ROOT / "kernels/compiled"
         contracts = {
             "rdna3_pure_fp32_wave.spv-asm": (
                 ["; Version: 1.6", "OpTypeFloat 32", "NoContraction"],

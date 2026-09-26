@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path $PSScriptRoot).Path
 $repo = (Resolve-Path $Repository).Path
-$pack = Join-Path $repo 'mobile\xclipse940-vulkan-kernel'
+$pack = Join-Path $repo 'examples\xclipse940'
 $fixture = Join-Path $pack 'verify'
 $tool = Join-Path $SdkRoot 'ndk\30.0.15729638\toolchains\llvm\prebuilt\windows-x86_64\bin\clang++.exe'
 $buildTools = Join-Path $SdkRoot 'build-tools\36.0.0'

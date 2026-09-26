@@ -114,7 +114,7 @@ $shaders = @(
 )
 
 foreach ($shader in $shaders) {
-    $source = Join-Path (Join-Path $repoRoot 'shaders') $shader.Source
+    $source = Join-Path (Join-Path $repoRoot 'kernels\source') $shader.Source
     $spv = Join-Path $outputRoot ($shader.Name + ".spv")
     $assembly = Join-Path $outputRoot ($shader.Name + ".spv-asm")
 

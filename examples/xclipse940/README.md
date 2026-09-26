@@ -1,4 +1,19 @@
-# Xclipse 940 Vulkan GPU 커널 데모 v0.1
+# Xclipse 940 ASTC Vulkan GPU 데모
+
+## 먼저 실행하기
+
+저장소 루트에서 Windows PowerShell로 실행한다. Android SDK의 `adb`, NDK
+30.0.15729638과 USB 디버깅이 허용된 폰 한 대가 필요하다.
+
+```powershell
+adb devices
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\examples\xclipse940\verify_device.ps1
+```
+
+성공하면 `PASS: packaged SPIR-V on device; RGBA and word-plane SHA256 match fixtures.`가
+나온다. 자세한 실행 로그는 `verify/device_run.log`에 기록된다. 폰 없이 파일을
+살펴보려면 `fused_astc_u64.comp`(셰이더 소스), `kernel_abi.json`(입출력 규약),
+`verify/source.png`(예제 이미지) 순서로 보면 된다.
 
 이 패키지는 **GPU 안의 연산만** 담는다. 검증된 Vulkan compute shader 하나가
 ASTC 8×8 sRGB 텍스처를 읽고, 인접한 두 픽셀을 64비트 레인으로 묶어

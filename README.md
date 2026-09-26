@@ -1,121 +1,57 @@
 > 해당코드는 Codex로 수정됨
 
-# RDNA3 Vulkan compute demos
+# Xclipse 940 Vulkan compute 데모
 
-이 저장소에는 두 개의 독립적인 Vulkan compute 데모가 있다.
+Galaxy S24의 Xclipse 940에서 실행해 본 **두 개의 Vulkan 1.3 compute 데모**다. 첫 번째는 RDNA3용으로 설계한 논리 스케줄러와 커널 5개를 Wave32·Wave64로 실행한다. 두 번째는 ASTC 이미지를 읽어 64비트 레인과 word-plane으로 변환한다.
 
-| 위치 | 대상 | 검증 범위 |
-| --- | --- | --- |
-| [`src/`](src/) + [`shaders/`](shaders/) | AMD RDNA3용 논리 micro-engine | SPIR-V 계약과 수치·스케줄링 테스트. Xclipse 940에서 원본 스케줄러·셰이더 10회 GPU dispatch 검증. AMD Radeon GPU 실행은 미검증 |
-| [`mobile/xclipse940-vulkan-kernel/`](mobile/xclipse940-vulkan-kernel/README.md) | Samsung Xclipse 940 / Android Vulkan 1.3 | Galaxy S24 실기기에서 ASTC 입력과 GPU 출력 검증 |
+**ROCm 포팅을 실험하기 위한 독립 구현**이다. ROCm/HIP/ROCr 런타임이나 AMD 드라이버를 포함하지 않으며, AMD Radeon에서의 실행은 아직 검증하지 않았다.
 
-두 데모 모두 Vulkan으로 독립 구현했으며 ROCm/HIP/ROCr 런타임을 포함하지 않는다.
+## 빠른 시작: 폰에서 두 데모 실행
 
-## 저장소 구성
-
-- [`src/`](src/): RDNA3 호스트 라이브러리
-- [`shaders/`](shaders/): Slang compute 셰이더 소스
-- [`prebuilt/`](prebuilt/): 2026-08-12에 검증한 SPIR-V 및 어셈블리와 바이너리 체크섬
-- [`scripts/`](scripts/), [`tests/`](tests/): 컴파일·ISA 점검 스크립트와 Python 테스트
-- [`docs/`](docs/): API·표준 대응과 당시 검증 기록
-- [`mobile/`](mobile/): Xclipse 940 모바일 데모
-
-## RDNA3 논리 micro-engine
-
-지금까지 만든 계산 경로를 하나의 Vulkan compute 패키지로 병합한 예시다.
-
-- API/SDK 기준: Vulkan 1.3, 헤더 `VK_HEADER_VERSION >= 304` (실기기 1.3.304 / NDK 헤더 335)
-- 중간 표현: SPIR-V 1.6
-- GPU 타깃: AMD RDNA3
-- 실행 폭: required subgroup size를 이용한 Wave32 + Wave64
-- 스케줄링: MES 문서의 큐 상태, 4단계 우선순위, quantum, doorbell, 상태 조회, 원형 로그를 사용자 공간에서 모델링
-
-이 코드는 MES 펌웨어나 KMD를 대체하지 않는다. Vulkan 애플리케이션이 직접 사용할 수 있는 논리 스케줄러이며, 최종 작업은 `vkCmdDispatch`로 기록된다.
-
-## 병합된 커널
-
-| `KernelKind` | 입력 → 출력 | RDNA3 의도 |
-|---|---|---|
-| `sveSmeU64Ingress` | SVE/SME `uint64` lane 2–32개 → 64개의 `uint32` word plane + 재결합 `uint64` | shaderInt64 없이 LDS에서 Wave32/64 공통 배치 |
-| `pureFp32` | FP32 → FP32 제곱+2 및 subgroup 합 | precise FP32 VALU, Wave32에서 합법적인 VOPD 선택 가능성 |
-| `pureFp16x2` | packed FP16x2 → packed FP16x2 및 subgroup 합 | VOP3P `V_PK_*_F16` 후보, 계산·저장·합 모두 FP16 |
-| `fp16x2Fp32Mixed` | packed FP16x2 → FP16 제곱 → FP32 합 | FP16 계산 + FP32 reduction mixed 경로 |
-| `int8x4Int32Mixed` | packed signed INT8x4 두 개 + INT32 bias → INT32 | SPIR-V packed `OpSDot`, RDNA3 `V_DOT4_I32_IU8` 후보 |
-
-SPIR-V가 특정 RDNA3 기계 명령을 강제하지는 않는다. 실제 선택은 AMD 드라이버가 만든 ISA dump로 확인해야 한다.
-
-## 스케줄러 동작
-
-논리 큐 상태는 `unmapped → mappedDisconnected → mappedConnected`로 움직인다. 작업을 넣으면 논리 doorbell이 증가하고, 제한된 매핑 슬롯이 가득 찬 경우 idle 큐 또는 더 낮은 우선순위의 disconnected 큐를 unmap한다.
-
-우선순위는 `realtime > focus > normal > idle`의 strict ordering이다. 같은 단계에서는 `quantumDispatches`개씩 실행한 뒤 round-robin한다. `automatic` Wave 정책은 RDNA3의 VOPD가 Wave32 전용이라는 ISA 제약 때문에 Wave32를 선택하며, 모든 커널은 Wave64를 명시적으로 선택할 수도 있다.
-
-`JobFlags::barrierBefore`와 `barrierAfter`는 dispatch 사이에 Vulkan 1.3 `vkCmdPipelineBarrier2`를 넣어 storage write → compute read/write 의존성을 만든다. SVE/SME ingress 내부의 두 번의 `GroupMemoryBarrierWithGroupSync()`는 LDS word-plane 재배치의 work-group 동기화를 담당한다.
-
-## 빌드와 검증
-
-Slang 셰이더를 컴파일한다.
+Windows PowerShell에서 이 저장소의 루트로 이동해 실행한다. Android Studio의 **SDK Platform-Tools, NDK 30.0.15729638, CMake 4.1.2**가 필요하다. `adb`가 PATH에 있어야 하고, 폰의 USB 디버깅을 허용해야 한다.
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\compile_all.ps1 `
-  -SlangCompiler C:\path\to\slangc.exe
+adb devices
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\verify_all_on_device.ps1
 ```
 
-C++ 라이브러리는 Vulkan SDK 1.3.304 이상과 C++20 컴파일러가 필요하다.
+`adb devices`에 `device` 상태의 기기 **한 대**가 보여야 한다. SDK가 기본 위치가 아니라면 두 번째 명령 끝에 `-SdkRoot C:\path\to\Android\Sdk`를 붙인다.
 
-```powershell
-cmake -S . -B out
-cmake --build out --config Release
-```
+성공하면 `10 GPU dispatches`와 `packaged SPIR-V on device`의 PASS 줄이 나온다. 마지막 줄은 `PASS: both on-device Vulkan demos completed.`다. 첫 데모의 실행 로그는 `build/android-arm64/device_gpu_run.log`, 두 번째 로그는 `examples/xclipse940/verify/device_run.log`에 저장된다.
 
-Android Studio가 설치한 NDK 30·CMake 4.1.2·Ninja로 AArch64 정적 라이브러리도
-교차 빌드할 수 있다. NDK 30의 Vulkan 헤더 revision 335가 최소 요구치 304를
-충족하므로 별도 Vulkan-Headers 체크아웃은 필요하지 않다.
+## 원하는 것만 실행
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_android_arm64.ps1
-```
+| 목적 | 명령 또는 안내 |
+| --- | --- |
+| 스케줄러와 커널 5개를 GPU에서 검증 | `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\verify_android_gpu.ps1` |
+| ASTC → word-plane 커널을 GPU에서 검증 | `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\examples\xclipse940\verify_device.ps1` |
+| 폰 없이 AArch64 라이브러리 빌드 | `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_android_arm64.ps1` |
+| 수치·스케줄링·SPIR-V 계약 점검 | `python .\tests\test_unified_micro_engine.py` |
+| Android 앱으로 실행하거나 Sokatoa에서 추적 | [앱 안내](examples/xclipse940/android-app/README.md) |
 
-결과는 `build/android-arm64/librdna3_micro_engine.a`다.
-[빌드 기록](docs/validation-2026-09-27-android.md).
+셰이더를 다시 컴파일하려면 Slang `slangc`를 준비하고 `scripts/compile_all.ps1 -SlangCompiler C:\path\to\slangc.exe`를 실행한다. 원본 SPIR-V는 이미 저장소에 들어 있다.
 
-[Xclipse 940 GPU 실행 검증](docs/validation-2026-09-27-xclipse-rdna3-gpu.md)은
-같은 정적 라이브러리와 `prebuilt/`의 원본 셰이더 다섯 개를 사용한다. 폰의
-Vulkan 런타임은 1.3.304이고 vendor ID는 Samsung `0x144d`다.
-`requireUnifiedRdna3Support()`가 Vulkan 1.3 기능과 Xclipse 940을 확인한 뒤
-원본 `MicroEngineScheduler`에서 Wave32·Wave64 총 10개 GPU 작업을 제출한다.
+## 파일 찾기
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\verify_android_gpu.ps1
-```
+| 위치 | 내용 |
+| --- | --- |
+| [`engine/`](engine/) | `MicroEngineScheduler` C++ 라이브러리와 Vulkan 기능 검사 |
+| [`kernels/source/`](kernels/source/) | Slang 셰이더 소스 5개 |
+| [`kernels/compiled/`](kernels/compiled/) | 대응하는 SPIR-V 1.6 바이너리·어셈블리·SHA-256 목록 |
+| [`examples/xclipse940/`](examples/xclipse940/README.md) | ASTC 데모, 입력·기준값, 실기기 검증, Android 앱 |
+| [`scripts/`](scripts/) | 빌드·실기기 실행·ISA 확인 명령 |
+| [`tests/`](tests/) | CPU 수치 참조와 GPU 실행기 |
+| [`docs/reference/`](docs/reference/) | API 레이아웃과 표준 대응 |
+| [`docs/results/`](docs/results/) | 날짜별 빌드·실기기 검증 기록 |
 
-표준 라이브러리만 쓰는 수치·스케줄링·SPIR-V 계약 테스트:
+## 무엇을 검증했나
 
-```powershell
-python .\tests\test_unified_micro_engine.py
-```
+2026-09-27 Galaxy S24 SM-S921N / Samsung Xclipse 940 / Vulkan 1.3.304에서 원본 커널 5개를 Wave32와 Wave64로 각각 제출해 **10번의 GPU dispatch**를 검증했다. ASTC 데모는 256×256 ASTC 8×8 sRGB 이미지를 한 번의 dispatch로 처리하고 RGBA·word-plane 출력을 기준값과 SHA-256으로 비교했다. [GPU 실행 기록](docs/results/validation-2026-09-27-xclipse-rdna3-gpu.md)과 [ASTC 실기기 결과](examples/xclipse940/DEVICE_RESULT.txt)에 세부 정보가 있다.
 
-AMD RGA 또는 드라이버 도구로 만든 `.isa` 파일을 검사하려면 각 build 이름과 같은 이름으로 모은 뒤 실행한다.
+이 저장소의 Wave32/64 선택과 큐 우선순위는 **Vulkan 애플리케이션의 논리 스케줄링**이다. MES 펌웨어나 KMD를 교체하지 않는다. SPIR-V의 연산 형태가 특정 RDNA3 기계 명령의 선택을 보장하지도 않는다. 그 확인에는 실제 AMD 드라이버의 ISA dump가 필요하다.
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\check_rdna3_isa.ps1 `
-  -IsaDirectory C:\path\to\isa-dumps
-```
-
-## 호스트 연결 순서
-
-1. `queryUnifiedDeviceSupport()`와 `requireUnifiedRdna3Support()`로 RDNA3 기능을 확인한다.
-2. `RequiredDeviceFeatures::head()`를 `VkDeviceCreateInfo::pNext`에 연결하고 `pEnabledFeatures`는 null로 둔다.
-3. 셰이더별 descriptor set layout과 최대 16바이트 push constant range를 만든다.
-4. `MicroEngineScheduler`를 만들고 5개 shader module/layout을 `registerKernel()`로 등록한다.
-5. `addQueue()`, `enqueue()` 후 command buffer 안에서 `recordBatch()`를 부른다.
-6. 일반 Vulkan semaphore/fence/timeline semaphore로 제출 완료를 추적한다.
-
-세부 필드와 descriptor binding은 [API와 레이아웃](docs/api-and-layouts.md),
-표준 문서와의 대응은 [표준 대응](docs/standards-mapping.md),
-당시 검증 결과는 [검증 기록](docs/validation-2026-08-12.md)을 참고한다.
+통합 방법은 [API와 descriptor 레이아웃](docs/reference/api-and-layouts.md), 관련 규격은 [표준 대응](docs/reference/standards-mapping.md), 모바일 커널의 입출력 계약은 [Xclipse 940 예제 안내](examples/xclipse940/README.md)를 참고하면 된다.
 
 ## 라이선스
 
-저장소는 [Apache License 2.0](LICENSE)으로 공개한다. 모바일 데모의
-독립 배포를 위한 라이선스와 저작권 표시는 해당 디렉터리에도 있다.
+[Apache License 2.0](LICENSE). 모바일 예제 안에도 독립 배포를 위한 라이선스와 저작권 표시가 있다.
